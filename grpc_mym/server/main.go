@@ -54,12 +54,48 @@ func (s *personServer) SearchOut(req *person_grpc.PersonReq, server person_grpc.
 			break
 		}
 		time.Sleep(1 * time.Second)
-		server.Send(&person_grpc.PersonRes{Name: "我拿到了" + req.Name})
+		err := server.Send(&person_grpc.PersonRes{Name: "我拿到了" + req.Name})
+		if err != nil {
+			fmt.Println(err)
+		}
 		i++
 	}
 	return nil
 }
-func (s *personServer) SearchIO(person_grpc.SearchService_SearchIOServer) error {
+
+// SearchIO 流式传入和传出
+func (s *personServer) SearchIO(server person_grpc.SearchService_SearchIOServer) error {
+	i := 0
+	str := make(chan string)
+	go func() {
+		for {
+			i++
+			req, err := server.Recv()
+			if i > 10 || err != nil {
+				str <- "结束"
+				fmt.Println(err, i)
+			}
+			str <- req.Name
+			fmt.Println(req.Name)
+		}
+	}()
+
+	for {
+		s := <-str
+		if s == "结束" {
+			err := server.Send(&person_grpc.PersonRes{Name: s})
+			if err != nil {
+				fmt.Println(err)
+			}
+			break
+		}
+
+		err := server.Send(&person_grpc.PersonRes{Name: s})
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
 	return nil
 }
 

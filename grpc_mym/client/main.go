@@ -6,6 +6,7 @@ import (
 	person_grpc "github.com/FamousMai/go_study/grpc_mym/pb/person"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"sync"
 	"time"
 )
 
@@ -69,4 +70,40 @@ func main() {
 		fmt.Println(req)
 	}
 
+	/**
+	流式请求和返回
+	*/
+	clientInOut, err := client.SearchIO(context.Background())
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			err := clientInOut.Send(&person_grpc.PersonReq{Name: "老麦"})
+			if err != nil {
+				fmt.Println(err)
+				wg.Done()
+				break
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			req, err := clientInOut.Recv()
+			if err != nil {
+				fmt.Println(err)
+				wg.Done()
+				break
+			}
+			fmt.Println(req)
+		}
+	}()
+
+	wg.Wait()
 }
