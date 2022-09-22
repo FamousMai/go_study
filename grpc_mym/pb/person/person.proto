@@ -4,46 +4,20 @@ package person;
 
 option go_package = "github.com/FamousMai/go_study/grpc_mym/pb/person;person";
 
-import "/home/home.proto";
-
-// 类型嵌套
-//message Home{
-//  repeated Person persons = 1;
-//  message Visitor{
-//    string name = 1;
-//  }
-//  Visitor v = 2;
-//}
-
-message Person{
+message PersonReq{
   string name = 1;
   int32 age = 2;
-//  bool sex = 3;
-
-  enum SEX {
-    option allow_alias = true; // 允许一样的值枚举
-    MAN = 0;
-    WOMEN = 1;
-    GIRL = 1;
-    OTHER = 2;
-  }
-
-  home.Home i_home = 9;
-
-  SEX sex = 3;
-
-  repeated string test = 4; //切片
-  map <string, string>test_map = 5;
-
-  // 字段作废
-//  reserved  "test_map", "test";
-//  reserved  5;
 }
 
 
+message PersonRes{
+  string name = 1;
+  int32 age = 2;
+}
+
 service SearchService {
-  rpc Search(Person) returns (Person); //传统的 即可响应
-  rpc SearchIn(stream Person) returns (Person); // 入参为流
-  rpc SearchOut(Person) returns (stream Person); // 出参为流
-  rpc SearchIO(stream Person) returns (stream Person); //出入均为流
+  rpc Search(PersonReq) returns (PersonRes); //传统的 即可响应
+  rpc SearchIn(stream PersonReq) returns (PersonRes); // 入参为流
+  rpc SearchOut(PersonReq) returns (stream PersonRes); // 出参为流
+  rpc SearchIO(stream PersonReq) returns (stream PersonRes); //出入均为流
 }

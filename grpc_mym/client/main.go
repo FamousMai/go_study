@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	hello_grpc "github.com/FamousMai/go_study/grpc_mym/pb"
+	person_grpc "github.com/FamousMai/go_study/grpc_mym/pb/person"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -19,7 +19,8 @@ func main() {
 			fmt.Println("关闭失败" + err.Error())
 		}
 	}(conn)
-	client := hello_grpc.NewHelloGRPCClient(conn)
-	req, _ := client.SayHi(context.Background(), &hello_grpc.Req{Message: "我从客户端来"})
-	fmt.Println(req.GetMessage())
+
+	client := person_grpc.NewSearchServiceClient(conn)
+	res, _ := client.Search(context.Background(), &person_grpc.PersonReq{Name: "我是老麦"})
+	fmt.Println(res.GetName())
 }

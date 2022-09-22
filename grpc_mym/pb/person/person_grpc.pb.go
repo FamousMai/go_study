@@ -22,9 +22,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SearchServiceClient interface {
-	Search(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error)
+	Search(ctx context.Context, in *PersonReq, opts ...grpc.CallOption) (*PersonRes, error)
 	SearchIn(ctx context.Context, opts ...grpc.CallOption) (SearchService_SearchInClient, error)
-	SearchOut(ctx context.Context, in *Person, opts ...grpc.CallOption) (SearchService_SearchOutClient, error)
+	SearchOut(ctx context.Context, in *PersonReq, opts ...grpc.CallOption) (SearchService_SearchOutClient, error)
 	SearchIO(ctx context.Context, opts ...grpc.CallOption) (SearchService_SearchIOClient, error)
 }
 
@@ -36,8 +36,8 @@ func NewSearchServiceClient(cc grpc.ClientConnInterface) SearchServiceClient {
 	return &searchServiceClient{cc}
 }
 
-func (c *searchServiceClient) Search(ctx context.Context, in *Person, opts ...grpc.CallOption) (*Person, error) {
-	out := new(Person)
+func (c *searchServiceClient) Search(ctx context.Context, in *PersonReq, opts ...grpc.CallOption) (*PersonRes, error) {
+	out := new(PersonRes)
 	err := c.cc.Invoke(ctx, "/person.SearchService/Search", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -55,8 +55,8 @@ func (c *searchServiceClient) SearchIn(ctx context.Context, opts ...grpc.CallOpt
 }
 
 type SearchService_SearchInClient interface {
-	Send(*Person) error
-	CloseAndRecv() (*Person, error)
+	Send(*PersonReq) error
+	CloseAndRecv() (*PersonRes, error)
 	grpc.ClientStream
 }
 
@@ -64,22 +64,22 @@ type searchServiceSearchInClient struct {
 	grpc.ClientStream
 }
 
-func (x *searchServiceSearchInClient) Send(m *Person) error {
+func (x *searchServiceSearchInClient) Send(m *PersonReq) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *searchServiceSearchInClient) CloseAndRecv() (*Person, error) {
+func (x *searchServiceSearchInClient) CloseAndRecv() (*PersonRes, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(Person)
+	m := new(PersonRes)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *searchServiceClient) SearchOut(ctx context.Context, in *Person, opts ...grpc.CallOption) (SearchService_SearchOutClient, error) {
+func (c *searchServiceClient) SearchOut(ctx context.Context, in *PersonReq, opts ...grpc.CallOption) (SearchService_SearchOutClient, error) {
 	stream, err := c.cc.NewStream(ctx, &SearchService_ServiceDesc.Streams[1], "/person.SearchService/SearchOut", opts...)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (c *searchServiceClient) SearchOut(ctx context.Context, in *Person, opts ..
 }
 
 type SearchService_SearchOutClient interface {
-	Recv() (*Person, error)
+	Recv() (*PersonRes, error)
 	grpc.ClientStream
 }
 
@@ -103,8 +103,8 @@ type searchServiceSearchOutClient struct {
 	grpc.ClientStream
 }
 
-func (x *searchServiceSearchOutClient) Recv() (*Person, error) {
-	m := new(Person)
+func (x *searchServiceSearchOutClient) Recv() (*PersonRes, error) {
+	m := new(PersonRes)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -121,8 +121,8 @@ func (c *searchServiceClient) SearchIO(ctx context.Context, opts ...grpc.CallOpt
 }
 
 type SearchService_SearchIOClient interface {
-	Send(*Person) error
-	Recv() (*Person, error)
+	Send(*PersonReq) error
+	Recv() (*PersonRes, error)
 	grpc.ClientStream
 }
 
@@ -130,12 +130,12 @@ type searchServiceSearchIOClient struct {
 	grpc.ClientStream
 }
 
-func (x *searchServiceSearchIOClient) Send(m *Person) error {
+func (x *searchServiceSearchIOClient) Send(m *PersonReq) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *searchServiceSearchIOClient) Recv() (*Person, error) {
-	m := new(Person)
+func (x *searchServiceSearchIOClient) Recv() (*PersonRes, error) {
+	m := new(PersonRes)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -146,9 +146,9 @@ func (x *searchServiceSearchIOClient) Recv() (*Person, error) {
 // All implementations must embed UnimplementedSearchServiceServer
 // for forward compatibility
 type SearchServiceServer interface {
-	Search(context.Context, *Person) (*Person, error)
+	Search(context.Context, *PersonReq) (*PersonRes, error)
 	SearchIn(SearchService_SearchInServer) error
-	SearchOut(*Person, SearchService_SearchOutServer) error
+	SearchOut(*PersonReq, SearchService_SearchOutServer) error
 	SearchIO(SearchService_SearchIOServer) error
 	mustEmbedUnimplementedSearchServiceServer()
 }
@@ -157,13 +157,13 @@ type SearchServiceServer interface {
 type UnimplementedSearchServiceServer struct {
 }
 
-func (UnimplementedSearchServiceServer) Search(context.Context, *Person) (*Person, error) {
+func (UnimplementedSearchServiceServer) Search(context.Context, *PersonReq) (*PersonRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Search not implemented")
 }
 func (UnimplementedSearchServiceServer) SearchIn(SearchService_SearchInServer) error {
 	return status.Errorf(codes.Unimplemented, "method SearchIn not implemented")
 }
-func (UnimplementedSearchServiceServer) SearchOut(*Person, SearchService_SearchOutServer) error {
+func (UnimplementedSearchServiceServer) SearchOut(*PersonReq, SearchService_SearchOutServer) error {
 	return status.Errorf(codes.Unimplemented, "method SearchOut not implemented")
 }
 func (UnimplementedSearchServiceServer) SearchIO(SearchService_SearchIOServer) error {
@@ -183,7 +183,7 @@ func RegisterSearchServiceServer(s grpc.ServiceRegistrar, srv SearchServiceServe
 }
 
 func _SearchService_Search_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Person)
+	in := new(PersonReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func _SearchService_Search_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/person.SearchService/Search",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SearchServiceServer).Search(ctx, req.(*Person))
+		return srv.(SearchServiceServer).Search(ctx, req.(*PersonReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -205,8 +205,8 @@ func _SearchService_SearchIn_Handler(srv interface{}, stream grpc.ServerStream) 
 }
 
 type SearchService_SearchInServer interface {
-	SendAndClose(*Person) error
-	Recv() (*Person, error)
+	SendAndClose(*PersonRes) error
+	Recv() (*PersonReq, error)
 	grpc.ServerStream
 }
 
@@ -214,12 +214,12 @@ type searchServiceSearchInServer struct {
 	grpc.ServerStream
 }
 
-func (x *searchServiceSearchInServer) SendAndClose(m *Person) error {
+func (x *searchServiceSearchInServer) SendAndClose(m *PersonRes) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *searchServiceSearchInServer) Recv() (*Person, error) {
-	m := new(Person)
+func (x *searchServiceSearchInServer) Recv() (*PersonReq, error) {
+	m := new(PersonReq)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func (x *searchServiceSearchInServer) Recv() (*Person, error) {
 }
 
 func _SearchService_SearchOut_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Person)
+	m := new(PersonReq)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func _SearchService_SearchOut_Handler(srv interface{}, stream grpc.ServerStream)
 }
 
 type SearchService_SearchOutServer interface {
-	Send(*Person) error
+	Send(*PersonRes) error
 	grpc.ServerStream
 }
 
@@ -243,7 +243,7 @@ type searchServiceSearchOutServer struct {
 	grpc.ServerStream
 }
 
-func (x *searchServiceSearchOutServer) Send(m *Person) error {
+func (x *searchServiceSearchOutServer) Send(m *PersonRes) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -252,8 +252,8 @@ func _SearchService_SearchIO_Handler(srv interface{}, stream grpc.ServerStream) 
 }
 
 type SearchService_SearchIOServer interface {
-	Send(*Person) error
-	Recv() (*Person, error)
+	Send(*PersonRes) error
+	Recv() (*PersonReq, error)
 	grpc.ServerStream
 }
 
@@ -261,12 +261,12 @@ type searchServiceSearchIOServer struct {
 	grpc.ServerStream
 }
 
-func (x *searchServiceSearchIOServer) Send(m *Person) error {
+func (x *searchServiceSearchIOServer) Send(m *PersonRes) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *searchServiceSearchIOServer) Recv() (*Person, error) {
-	m := new(Person)
+func (x *searchServiceSearchIOServer) Recv() (*PersonReq, error) {
+	m := new(PersonReq)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
