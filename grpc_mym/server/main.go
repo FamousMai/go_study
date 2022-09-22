@@ -24,13 +24,27 @@ func (s *server) SayHi(ctx context.Context, req *hello_grpc.Req) (res *hello_grp
 	return &hello_grpc.Res{Message: "我是从服务端返回的grpc的内容"}, nil
 }
 
+// Search 普通请求
 func (s *personServer) Search(ctx context.Context, req *person_grpc.PersonReq) (res *person_grpc.PersonRes, err error) {
 	fmt.Println(ctx)
 	name := req.GetName()
 	res = &person_grpc.PersonRes{Name: "我收到了" + name + "的信息"}
 	return res, nil
 }
-func (s *personServer) SearchIn(person_grpc.SearchService_SearchInServer) error {
+
+// SearchIn 流式请求
+func (s *personServer) SearchIn(server person_grpc.SearchService_SearchInServer) error {
+	for {
+		req, err := server.Recv()
+		fmt.Println(req)
+		if err != nil { //有可能传完了，有可能传错了
+			err := server.SendAndClose(&person_grpc.PersonRes{Name: "完成了" + err.Error()})
+			if err != nil {
+				fmt.Println(err)
+			}
+			break
+		}
+	}
 	return nil
 }
 func (s *personServer) SearchOut(*person_grpc.PersonReq, person_grpc.SearchService_SearchOutServer) error {
