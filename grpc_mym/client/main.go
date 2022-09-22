@@ -53,4 +53,20 @@ func main() {
 		i++
 	}
 
+	/**
+	流式返回
+	*/
+	clientOut, err := client.SearchOut(context.Background(), &person_grpc.PersonReq{Name: "老麦"})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	for {
+		req, err := clientOut.Recv()
+		if err != nil {
+			fmt.Println(err.Error())
+			break
+		}
+		fmt.Println(req)
+	}
+
 }

@@ -7,6 +7,7 @@ import (
 	person_grpc "github.com/FamousMai/go_study/grpc_mym/pb/person"
 	"google.golang.org/grpc"
 	"net"
+	"time"
 )
 
 type server struct {
@@ -18,17 +19,14 @@ type personServer struct {
 }
 
 // SayHi 挂载方法
-func (s *server) SayHi(ctx context.Context, req *hello_grpc.Req) (res *hello_grpc.Res, err error) {
-	fmt.Println(ctx)
-	fmt.Println(req.GetMessage())
+func (s *server) SayHi(context.Context, *hello_grpc.Req) (res *hello_grpc.Res, err error) {
 	return &hello_grpc.Res{Message: "我是从服务端返回的grpc的内容"}, nil
 }
 
 // Search 普通请求
-func (s *personServer) Search(ctx context.Context, req *person_grpc.PersonReq) (res *person_grpc.PersonRes, err error) {
-	fmt.Println(ctx)
-	name := req.GetName()
-	res = &person_grpc.PersonRes{Name: "我收到了" + name + "的信息"}
+func (s *personServer) Search(_ context.Context, req *person_grpc.PersonReq) (res *person_grpc.PersonRes, err error) {
+	fmt.Println(req.Name)
+	res = &person_grpc.PersonRes{Name: "我收到了" + req.Name + "的信息"}
 	return res, nil
 }
 
@@ -47,7 +45,18 @@ func (s *personServer) SearchIn(server person_grpc.SearchService_SearchInServer)
 	}
 	return nil
 }
-func (s *personServer) SearchOut(*person_grpc.PersonReq, person_grpc.SearchService_SearchOutServer) error {
+
+// SearchOut 流式返回
+func (s *personServer) SearchOut(req *person_grpc.PersonReq, server person_grpc.SearchService_SearchOutServer) error {
+	i := 0
+	for {
+		if i > 10 {
+			break
+		}
+		time.Sleep(1 * time.Second)
+		server.Send(&person_grpc.PersonRes{Name: "我拿到了" + req.Name})
+		i++
+	}
 	return nil
 }
 func (s *personServer) SearchIO(person_grpc.SearchService_SearchIOServer) error {
