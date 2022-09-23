@@ -5,8 +5,12 @@ import (
 	"fmt"
 	hello_grpc "github.com/FamousMai/go_study/grpc_mym/pb"
 	person_grpc "github.com/FamousMai/go_study/grpc_mym/pb/person"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"net"
+	"net/http"
+	"sync"
 	"time"
 )
 
@@ -101,7 +105,42 @@ func (s *personServer) SearchIO(server person_grpc.SearchService_SearchIOServer)
 
 func main() {
 	fmt.Println(server{})
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go registerGetaway(&wg)
+	go registerGRPC(&wg)
+	wg.Wait()
+}
 
+func registerGetaway(wg *sync.WaitGroup) {
+	conn, err := grpc.DialContext(
+		context.Background(),
+		"127.0.0.1:8888",
+		grpc.WithBlock(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
+	mux := runtime.NewServeMux() //一个对外开放的mux
+
+	gwServer := &http.Server{
+		Handler: mux,
+		Addr:    ":8090",
+	}
+
+	err = person_grpc.RegisterSearchServiceHandler(context.Background(), mux, conn)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = gwServer.ListenAndServe() //监听
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer wg.Done()
+}
+
+func registerGRPC(wg *sync.WaitGroup) {
 	l, err := net.Listen("tcp", ":8888") //这里不要写成rpc了
 	if err != nil {
 		fmt.Println("报错了")
@@ -117,4 +156,6 @@ func main() {
 		fmt.Println("失败：" + errS.Error())
 	}
 	fmt.Println("成功！")
+
+	defer wg.Done()
 }

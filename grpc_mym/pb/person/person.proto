@@ -4,6 +4,8 @@ package person;
 
 option go_package = "github.com/FamousMai/go_study/grpc_mym/pb/person;person";
 
+import "google/api/annotations.proto";
+
 message PersonReq{
   string name = 1;
   int32 age = 2;
@@ -16,7 +18,12 @@ message PersonRes{
 }
 
 service SearchService {
-  rpc Search(PersonReq) returns (PersonRes); //传统的 即可响应
+  rpc Search(PersonReq) returns (PersonRes){
+    option(google.api.http)={
+      post:"/api/person",
+      body:"*"
+    };
+  }; //传统的 即可响应
   rpc SearchIn(stream PersonReq) returns (PersonRes); // 入参为流
   rpc SearchOut(PersonReq) returns (stream PersonRes); // 出参为流
   rpc SearchIO(stream PersonReq) returns (stream PersonRes); //出入均为流

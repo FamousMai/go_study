@@ -82,23 +82,23 @@ func main() {
 	wg.Add(2)
 
 	go func() {
+		defer wg.Done()
 		for {
 			time.Sleep(1 * time.Second)
 			err := clientInOut.Send(&person_grpc.PersonReq{Name: "老麦"})
 			if err != nil {
 				fmt.Println(err)
-				wg.Done()
 				break
 			}
 		}
 	}()
 
 	go func() {
+		defer wg.Done()
 		for {
 			req, err := clientInOut.Recv()
 			if err != nil {
 				fmt.Println(err)
-				wg.Done()
 				break
 			}
 			fmt.Println(req)
